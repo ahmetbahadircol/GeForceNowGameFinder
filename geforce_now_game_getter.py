@@ -33,7 +33,7 @@ def get_game_list():
     }
     link = "https://api-prod.nvidia.com/gfngames/v1/gameList"
     req = requests.post(link, data=data, headers=headers)
-    soup = BeautifulSoup(req.text, "html.parser")
-    breakpoint()
-    # soup = soup.findAll("div", {"class": "main-container"})
-    # print(soup[0].find_all("div"))
+    for idx, game_dict in enumerate(req.json().get("data").get("apps").get("items")):
+        print(f"{idx+1} - {game_dict.get('title')}")
+        # print(f"platform: {game_dict.get('variants').get('appStore')}")
+        # STEAM OLUP OLMADIGI KONTROL EDILCEK!!!
