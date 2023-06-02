@@ -1,6 +1,8 @@
 import requests
+from bs4 import BeautifulSoup
 
-def prepare_request(game_term: str):
+
+def _prepare_request(game_term: str):
     headers = {
         'Accept': '*/*',
         'Accept-Language': 'en-US,en;q=0.9',
@@ -23,8 +25,22 @@ def prepare_request(game_term: str):
         'cc': 'TR',
     }
 
+    return headers, params
+
+
+def get_game_price_steam(game_name: str):
+    headers, params = _prepare_request(game_name)
     response = requests.get('https://store.steampowered.com/search/suggest', params=params, headers=headers)
-
-    print(response.text)
-
-prepare_request("Panzer Corps 2")
+    soup = BeautifulSoup(response.text, "html.parser")
+    soup = soup.findAll("div", {"class": ["match_name", "match_price"]})
+    if soup:
+        for idx, g in enumerate(soup):
+            if idx % 2 != 0:
+                continue
+            try:
+                name = g.contents[0]
+                if name == game_name:
+                    price = soup[idx + 1].contents[0]
+                    return price
+            except IndexError as e:
+                return None

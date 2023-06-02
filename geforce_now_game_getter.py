@@ -1,19 +1,8 @@
 import requests
-from bs4 import BeautifulSoup
+from get_steam_price import get_game_price_steam
 
 
-def request_data():
-    return {
-        "referrer": "https://www.nvidia.com/",
-        "referrerPolicy": "strict-origin-when-cross-origin",
-        "body": "{ apps(country:\"US\" language:\"en_US\") {\n        numberReturned\n        pageInfo {\n          endCursor\n          hasNextPage\n        }\n        items {\n        title\n        sortName\n        \n      variants{\n        appStore\n        publisherName\n          }\n        }\n}}",
-        "method": "POST",
-        "mode": "cors",
-        "credentials": "omit"
-    }
-
-
-def get_game_list():
+def get_game_list() -> dict:
     data = '{ apps(country: "US" language: "en_US") {\n        numberReturned\n        pageInfo {\n          endCursor\n          hasNextPage\n        }\n        items {\n        title\n        sortName\n        \n      variants{\n        appStore\n        publisherName\n            }\n        }\n    }\n}'
 
     headers = {
@@ -33,7 +22,32 @@ def get_game_list():
     }
     link = "https://api-prod.nvidia.com/gfngames/v1/gameList"
     req = requests.post(link, data=data, headers=headers)
-    for idx, game_dict in enumerate(req.json().get("data").get("apps").get("items")):
-        print(f"{idx+1} - {game_dict.get('title')}")
-        # print(f"platform: {game_dict.get('variants').get('appStore')}")
-        # STEAM OLUP OLMADIGI KONTROL EDILCEK!!!
+    return req.json().get("data").get("apps").get("items")
+
+
+def get_game_price():
+    game_list = get_game_list()
+    for idx, game_dict in enumerate(game_list):
+        _title = game_dict.get('title').replace("®", "").replace("™", "")
+        app_store = [store.get("appStore") for store in game_dict.get("variants")]
+        breakpoint()
+        price_based_on_store = dict()
+
+        """
+        for platform in app_store:
+            getattr("get_game_price_" + "platform")
+            .
+            .
+            .
+        """
+
+        if "STEAM" in app_store:
+            _price = get_game_price_steam(_title)
+            price_based_on_store["STEAM"] = _price
+        _steam_price = price_based_on_store.get("STEAM")
+
+        if "EPIC" in app_store:
+            # EPIC GAMES PRICE GETTER FUNCTION WILL BE PLACED HERE
+            pass
+        _epic_price = price_based_on_store.get("EPIC")
+        print(f"{idx+1} - {_title} - STEAM: {_steam_price}, EPIC GAMES: {_epic_price}")
