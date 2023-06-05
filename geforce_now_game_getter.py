@@ -2,6 +2,9 @@ import requests
 from get_steam_price import get_game_price_steam
 
 
+PRICE_GETTER_BASED_ON_PLATFORM = {"STEAM": get_game_price_steam, "UPLAY": None, "EPIC": None}
+
+
 def get_game_list() -> dict:
     data = '{ apps(country: "US" language: "en_US") {\n        numberReturned\n        pageInfo {\n          endCursor\n          hasNextPage\n        }\n        items {\n        title\n        sortName\n        \n      variants{\n        appStore\n        publisherName\n            }\n        }\n    }\n}'
 
@@ -30,24 +33,16 @@ def get_game_price():
     for idx, game_dict in enumerate(game_list):
         _title = game_dict.get('title').replace("®", "").replace("™", "")
         app_store = [store.get("appStore") for store in game_dict.get("variants")]
-        breakpoint()
         price_based_on_store = dict()
 
-        """
         for platform in app_store:
-            getattr("get_game_price_" + "platform")
-            .
-            .
-            .
-        """
+            price_getter = PRICE_GETTER_BASED_ON_PLATFORM.get(platform)
+            if price_getter:
+                _price = price_getter(_title)
+                price_based_on_store[platform] = _price
+            else:
+                price_based_on_store[platform] = None
 
-        if "STEAM" in app_store:
-            _price = get_game_price_steam(_title)
-            price_based_on_store["STEAM"] = _price
         _steam_price = price_based_on_store.get("STEAM")
-
-        if "EPIC" in app_store:
-            # EPIC GAMES PRICE GETTER FUNCTION WILL BE PLACED HERE
-            pass
         _epic_price = price_based_on_store.get("EPIC")
         print(f"{idx+1} - {_title} - STEAM: {_steam_price}, EPIC GAMES: {_epic_price}")
